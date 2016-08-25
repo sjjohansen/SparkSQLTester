@@ -1,0 +1,40 @@
+<workflow-app xmlns='uri:oozie:workflow:0.5' name='${workflowName}'>
+  <credentials>
+    <credential name='hcat-creds' type='hcat'>
+      <property>
+        <name>hcat.metastore.uri</name>
+        <value>${hcatURI}</value>
+      </property>
+      <property>
+        <name>hcat.metastore.principal</name>
+        <value>${hcatPrincipal}</value>
+      </property>
+    </credential>
+  </credentials>
+
+  <start to='spark-node' />
+
+  <action name='spark-node' cred='hcat-creds'>
+    <spark xmlns="uri:oozie:spark-action:0.1">
+      <job-tracker>${jobTracker}</job-tracker>
+      <name-node>${nameNode}</name-node>
+      <master>${sparkMaster}</master>
+      <mode>${sparkMode}</mode>
+      <name>${workflowName}</name>
+      <class>SparkSQLTester</class>
+      <jar>${jarFile}</jar>
+      <spark-opts>${sparkOpts}</spark-opts>
+      <arg>${sparkQuery}</arg>
+    </spark>
+    <ok to="end" />
+    <error to="fail" />
+  </action>
+
+  <kill name="fail">
+    <message>Workflow failed, error
+      message[${wf:errorMessage(wf:lastErrorNode())}]
+    </message>
+  </kill>
+
+  <end name='end' />
+</workflow-app>
